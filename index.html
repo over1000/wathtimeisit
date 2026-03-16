@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Learning - Fixed Mobile</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-rwdImageMaps/1.6/jquery.rwdImageMaps.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; text-align: center; background-color: #ffffff; font-family: sans-serif; }
+        .instruction { background: #333; color: white; padding: 10px; font-size: 14px; position: relative; z-index: 2000; }
+        
+        /* الحاوية يجب أن تكون مضبوطة بدقة */
+        .image-container { 
+            position: relative; 
+            display: inline-block; 
+            margin: 20px auto; 
+            max-width: 100%;
+        }
+
+        img { 
+            max-width: 100%; 
+            height: auto; 
+            display: block; 
+            z-index: 1;
+        }
+
+        /* مربع التركيز المطور */
+        #highlight-box {
+            position: absolute;
+            pointer-events: none;
+            /* استخدام shadow ضخم لتغطية الشاشة */
+            box-shadow: 0 0 0 5000px rgba(0, 0, 0, 0.7); 
+            z-index: 1000;
+            display: none;
+            border: 2px solid #fff;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        /* إخفاء أي زيادة خارج الحاوية لضمان عدم ظهور شريط تمرير */
+        .outer-wrapper { overflow: hidden; position: relative; width: 100%; }
+
+        area { cursor: pointer; outline: none; }
+    </style>
+</head>
+<body>
+
+    <div class="instruction">أنقر على مكبر الصوت او الكلمة لسماع النطق</div>
+
+    <div class="outer-wrapper">
+        <div class="image-container" id="container">
+            <div id="highlight-box"></div>
+            <img src="wathtimeisit.png" usemap="#image-map" id="colorImage">
+            <map name="image-map">
+    <area onclick="speak('WATH TIME IS IT ?', this)" coords="335,150,1026,354" shape="rect">
+    <area onclick="speak('FIVE TO', this)" coords="127,441,419,592" shape="rect">
+    <area onclick="speak('O'CLOCK', this)" coords="513,376,823,513" shape="rect">
+    <area onclick="speak('FIVE PAST', this)" coords="843,374,1151,492" shape="rect">
+    <area onclick="speak('TEN PAST', this)" coords="1011,502,1325,641" shape="rect">
+    <area onclick="speak('QUARTER PAST', this)" coords="986,755,1318,898" shape="rect">
+    <area onclick="speak('TWENTY PAST', this)" coords="999,967,1323,1101" shape="rect">
+    <area onclick="speak('TWENTYFIVE PAST', this)" coords="959,1107,1300,1287" shape="rect">
+    <area onclick="speak('HALF PAST', this)" coords="645,1249,942,1400" shape="rect">
+    <area onclick="speak('TWENTY-FIVE TO', this)" coords="173,1220,629,1357" shape="rect">
+    <area onclick="speak('TWENTY TO', this)" coords="138,987,448,1134" shape="rect">
+    <area onclick="speak('QUARTER TO', this)" coords="127,837,427,969" shape="rect">
+    <area onclick="speak('TEN TO', this)" coords="86,660,370,814" shape="rect">
+    <area onclick="speak('IT’S TWO O’CLOCK', this)" coords="148,1415,942,1479" shape="rect">
+    <area onclick="speak('IT’S FIVE PAST TWO', this)" coords="148,1483,957,1544" shape="rect">
+    <area onclick="speak('IT’S QUARTER PAST TWO', this)" coords="148,1550,1084,1605" shape="rect">
+    <area onclick="speak('IT’S HALF PAST TWO', this)" coords="146,1608,1000,1660" shape="rect">
+    <area onclick="speak('IT’S QUARTER TO THREE', this)" coords="144,1666,1082,1719" shape="rect">
+    <area onclick="speak('IT’S FIVE TO THREE', this)" coords="143,1724,944,1785" shape="rect">
+</map>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#colorImage').rwdImageMaps();
+            
+            document.body.addEventListener('touchstart', function() {
+                window.speechSynthesis.getVoices();
+            }, {once: true});
+        });
+
+        function speak(word, element) {
+            window.speechSynthesis.cancel();
+            var msg = new SpeechSynthesisUtterance(word);
+            msg.lang = 'en-US';
+            msg.rate = 0.9;
+
+            msg.onend = function() {
+                document.getElementById('highlight-box').style.display = 'none';
+            };
+            
+            window.speechSynthesis.speak(msg);
+
+            // استدعاء وظيفة التظليل مع تأخير بسيط لضمان دقة الحسابات على الموبايل
+            setTimeout(function() {
+                showHighlight(element);
+            }, 10);
+        }
+
+        function showHighlight(areaElement) {
+            var img = document.getElementById('colorImage');
+            var highlight = document.getElementById('highlight-box');
+            
+            // قراءة الإحداثيات الحالية (التي تم تعديلها بواسطة مكتبة rwdImageMaps)
+            var currentCoords = areaElement.coords.split(',');
+            var xCoords = [], yCoords = [];
+
+            for (var i = 0; i < currentCoords.length; i += 2) {
+                xCoords.push(parseFloat(currentCoords[i]));
+                yCoords.push(parseFloat(currentCoords[i+1]));
+            }
+
+            var minX = Math.min(...xCoords);
+            var maxX = Math.max(...xCoords);
+            var minY = Math.min(...yCoords);
+            var maxY = Math.max(...yCoords);
+
+            // تحديد الموقع بدقة متناهية بالنسبة للحاوية
+            highlight.style.left = minX + "px";
+            highlight.style.top = minY + "px";
+            highlight.style.width = (maxX - minX) + "px";
+            highlight.style.height = (maxY - minY) + "px";
+            
+            highlight.style.display = "block";
+        }
+    </script>
+</body>
+</html>
